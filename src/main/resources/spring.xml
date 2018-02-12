@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:p="http://www.springframework.org/schema/p"
+
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/util
+        http://www.springframework.org/schema/util/spring-util-3.2.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-util-3.2.xsd"
+
+>
+ <!--ДАННАЯ СТРОКА ВКЛЮЧАЕТ АНОТАЦИЮ-->
+    <context:annotation-config/>
+
+    <!--ДАННАЯ СТРОКА сканирует пакет который мы хотим что бы они попали в спринг-->
+<context:component-scan base-package=""/>
+
+
+        <!-- NAMESPACE UTIL - позволяет использование константы.
+            Можно определять List, Map и наборы свойст как отделные бины  и т .д -->
+
+<import resource="loggers.xml"/> <!--// вот импортируем наши loggers.xml-->
+
+        <!--урок №8. Подключаем файл что бы данные читались с отдельного файла с PROPERTIES FILE. Он "locations" принимает список всех вайл, котоыре мы хотим что бы он загрузил
+     <value>classpath:client.properties</value> - ссылка на наш ресурс откуда будут читать данные-->
+<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+<property name="locations">
+    <list>
+        <value>classpath:client.properties</value>
+    </list>
+</property>
+<property name="ignoreResourceNotFound" value="true"/>
+<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE"/>
+</bean>
+        <!-- игнорирует ресурсы. По умолчанию фолс. Тоесть если файл не будет найден, выскочит эксепшен-->
+        <!-- если ключ не будет найден в проперти файлах, то спринг будет искать в переменных окружения и системных файлах -->
+        <!--проинжектим ПРОперти и файла В наш бин Клиент-->
+        <!-- указываем знак $ и пишем ключ который в проперти файле-->\
+        <!-- для сокращенных записей свойств БИНОВ и аргументов конструктора есть 2 специальных НЕЙМСПЕЙС "C"-constructor-arg  "P"- property-->\
+
+<bean id="client" class="beans.Client"
+      p:greeting="${greeting}">
+<constructor-arg index="0" value="${id}"/>
+<constructor-arg value="${name}"/>
+</bean>
+
+<util:map id="loggerMap">
+<entry key="INFO" value-ref="consoleEventLogger"/>
+<entry key="ERROR" value-ref="combinedEventLogger"/>
+</util:map>
+
+        <!--Ниже пример Бина-->
+        <!--ниже мы классу устанавливаем значения на его переменные. можем через valuу, а можем и через property -->
+<bean id="client" class="beans.Client">
+<constructor-arg index="0" value="1"/>
+<constructor-arg value="John Smith Andrew" type="java.lang.String"/>
+<property name="greeting" value="Hello there Andrew!"/>  <!--//установили для метода -->
+</bean>
+        <!-- Например у нас в классе одни стринги, читать Спринг будет в том порядке в каком мы разместили в ХМЛ но если указали индекс, то по порядку индекса. Так же можно задавать тип аргументов type.lang.String и т.д-->
+
+        <!--ref это имя бина которое мы хотим проинжектить друг в друга. нИже код показывает что в класс App мы хотим проинжектить 2 класса-->
+<bean id="app" class="App">
+<constructor-arg ref="client"/>
+<constructor-arg ref="cacheFileEventLogger"/>
+<constructor-arg ref="loggerMap"/>
+</bean>
+        <!--В КЛАСС АPP ПЕРЕДАЕМ ВСЕ НАШИ ЛОГЕРЫ И ВЫЗЫВАЕМ ДЛЯ ОПРЕДЕЛЕННОГО ИВЕНТА-->
+        <!--  <constructor-arg>
+              <map>
+                  <entry key="INFO" value-ref="consoleEventLogger"/> &lt;!&ndash;КЛЮЧЕМ И ВЕЛЮ МОЖЕТ БІТЬ И ОБІЧНОЕ ЗНАЧЕНИЕ&ndash;&gt;
+                  <entry key="ERROR" value-ref="combinedEventLogger"/>
+              </map>
+          </constructor-arg>-->
+        <!--    </bean>-->
+        <!--параметр ref это имя бена которого мы хотим проинжектить-->
+        <!--модификаторы достпа У КОНТСРУКТОРА могут быть любыми СПРИНГ в любом случаи вызовет его-->
+        <!-- prototype создает новые экземпляры по запросу getBean. Всегда при вызове, он инжектит его зависимости, и мы получим обект кторый не нужно дополнительно настраевать-->
+<bean id="event" class="beans.Event" scope="prototype">
+<constructor-arg>
+    <bean class="java.util.Date"/>
+</constructor-arg>
+<constructor-arg ref="dateFormat"/>
+</bean>
+
+
+<bean id="dateFormat" class="java.text.DateFormat" factory-method="getDateTimeInstance"/>
+
+
+</beans>
+
+
+
+        <!-- <bean id="monitor" class="util.Monitor"/>
+         <bean id="awared" class="util.AwareBean" init-method="init"/>-->
+
+
+        <!--Определяем бин, указываем класс,  В атребуте фактори метод указываем имя статической
+        Фактори метод позволяет, что бы Спринг место констрктора вызвал статический метод, который создаст обект. Это нужно для АБСТРАКТНЫХ клсаов, которы не имеют конструкторов и который создается при помощи статических методов-->
+        <!-- вот метод всунили во внутырь конструткора. Date Это внутренний бин. Внутренний бин Виден только там где определяем. Все внутреннии бині создаются в момент инициализации внешенго бина   -->
+        <!-- инит методы не могу принимать аргументы, любой модификатор доступа. Спринг выполнит инициализацию, но другие классы не смогут вызвать этот метод. Может чтото возвращать и выбивать EXAPTIONS   -->
+
+        <!-- а это создал файл для записи -->
+
+
+        <!--
+        клас Parent бина может быть абстрктным, или обычным. Если добавим атрибут abstract true то Спринг не создаст этот бин. Но мы его можем использовать как родительский Бин для наследования определений -->
+
+        <!--Спринг это наследование определений, а не конкретных классов-->
+
+        <!--ОБЛАСТЬ ВИДИМОСТИ В СПРИНГ-->
+        <!--По умолчанию все Бины в Spring singeltone. Недостаток, т.к создает очередь, т.к один. А плюс в том, что не ресурсоемкий. -->
+
+        <!--Prototype. Каждый раз когда будет запрошен новый Бин, будет создан экземляр данного класса. Тоесть если нужен класс, то он создаст экземляр.-->
+
+        <!--Request - создает БИН на запрос. Один Бин на один запрос. -->
+
+        <!--Sesision - например сколько пользователь был на сайте.
+
+        Clobal Session-->
+
+
+        <!--dependens - on (можем задать несколько имен черз запятую) - что бы какойто БИН стартовал только после создания других бинов. -->
+
+
+        <!--lazy init = true. БИН не будет создаваться, а метод INIT не будет вызываться пока мы не вызовем getBean.  -->
+
+
+        <!--место MAP можно использовать тек <props> <prop key="стороки" value <>-->
+
+        <!--есть специальный тег null. Указываем null и получим null. <null/>-->
+
+
+
+

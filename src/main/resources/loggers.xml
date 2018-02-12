@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+ 		http://www.springframework.org/schema/beans
+ 		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+
+<bean id="consoleEventLogger" class="loggers.ConsoleEventLogger" />
+<bean id="fileEventLogger" class="loggers.FileEventLogger"
+      init-method="init">
+<constructor-arg value="target/events_log.txt" /> <!--сюда пишем кеш-->
+</bean>
+
+    <bean id="cacheFileEventLogger" class="loggers.CacheFileEventLogger"
+          destroy-method="destroy" parent="fileEventLogger">
+        <constructor-arg index="1" value="5"/>   <!-- размер кэша записи -->
+    </bean>
+
+
+   <!-- определил БИН И СОЗДАЛИ КОЛЕКЦИЯ АРГУМЕНТОВ КОНСТРУКТОРА -->
+    <bean id="combinedEventLogger" class="loggers.CombinedEventLogger">
+        <constructor-arg>
+            <list> <!--был бы set писали бы set, list -->
+                <ref bean="consoleEventLogger"/>
+                <!--ССЫЛКИ НА 2 ДРУГИЕ ЛОГЕРА-->
+                <ref bean="fileEventLogger"/>
+            </list>
+        </constructor-arg>
+    </bean>
+
+</beans>
+
+        <!-- Уничтожает бин. дестройт метод вызовится после закрытия контекста и все что было в кеше, запишет -->
+        <!--parent="fileEventLogger" обозначаем родительский класс, который подтянет все методы. Если мы наследуемся от какого то класса, который так же есть Бином,то не забываем укзатьа его init и дестройд метотоды если такие есть у родителя. -->
+
+
+
+

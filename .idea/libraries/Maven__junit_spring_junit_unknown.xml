@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: junit:spring-junit:unknown">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/junit/spring-junit/unknown/spring-junit-unknown.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/junit/spring-junit/unknown/spring-junit-unknown-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/junit/spring-junit/unknown/spring-junit-unknown-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
